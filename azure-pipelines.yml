@@ -1,0 +1,38 @@
+﻿# Azure DevOps Multi-Stage CI Pipeline for Terraform
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  terraformVersion: '1.14.6'
+
+stages:
+  - stage: Validate
+    displayName: 'Lint, Init & Validate'
+    jobs:
+      - job: TerraformValidation
+        displayName: 'Terraform Code Quality'
+        steps:
+          - task: TerraformInstaller@1
+            displayName: 'Install Terraform'
+            inputs:
+              terraformVersion: $(terraformVersion)
+
+          - script: |
+              echo "Checking Terraform formatting..."
+              terraform fmt -check
+            displayName: 'Terraform Format'
+
+          - script: |
+              echo "Initializing Terraform..."
+              terraform init -backend=false
+            displayName: 'Terraform Init'
+
+          - script: |
+              echo "Validating configuration..."
+              terraform validate
+            displayName: 'Terraform Validate'
